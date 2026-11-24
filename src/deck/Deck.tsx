@@ -163,6 +163,7 @@ function NotesPanel({ def, next, i, height, elapsed, running, planned, total }: 
         </div>
         <ul className="list-disc space-y-2 pl-5 text-[17px] leading-relaxed text-white/90">
           {def.notes.map((n, k) => <li key={k}>{n}</li>)}
+          {import.meta.env.VITE_PUBLIC_BUILD ? <li className="list-none text-white/50">Speaker notes aren’t included in the hosted version. Run the deck locally to see them.</li> : null}
         </ul>
       </div>
       <div className="flex w-[300px] shrink-0 flex-col gap-3">

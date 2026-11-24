@@ -9,7 +9,11 @@ npm install
 npm run dev
 ```
 
-Then open the URL Vite prints (port 5179 from the session's launch config). For a static copy, `npm run build` writes `dist/`, which any static host can serve. Opening `dist/index.html` straight from disk won't run the live slides, because browsers block the embedded prototype on `file://`.
+Then open the URL Vite prints (port 5179 from the session's launch config). For a static copy, `npm run build` writes `dist/`, which any static host can serve.
+
+## Hosted version
+
+Every push to `main` builds the deck and publishes it to GitHub Pages at https://catherinebutlerdesign.github.io/brightflag-deck/ (`.github/workflows/pages.yml`). The site is public even though the repo is private, so the hosted build leaves out the speaker notes. Run the deck locally to present with notes. Opening `dist/index.html` straight from disk won't run the live slides, because browsers block the embedded prototype on `file://`.
 
 The deck needs an internet connection for the Inter font, and the live slides need it for React and the icon font the prototype loads from CDNs.
 
