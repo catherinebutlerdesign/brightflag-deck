@@ -174,6 +174,8 @@ a{color:inherit}
 .grid-area{position:relative}
 .grid-wrap{overflow-x:auto}
 table.grid{width:100%;border-collapse:collapse;table-layout:fixed}
+.col-tip{position:fixed;z-index:10000;transform:translate(-50%,calc(-100% - 8px));background:var(--gray-6);color:#fff;font:400 12px/16px var(--font);padding:6px 10px;border-radius:6px;white-space:nowrap;pointer-events:none;box-shadow:var(--shadow-2)}
+.col-tip::after{content:"";position:absolute;left:50%;bottom:-4px;width:8px;height:8px;margin-left:-4px;background:var(--gray-6);transform:rotate(45deg)}
 .grid th{padding:0;text-align:left;border-bottom:1px solid var(--brand-type);border-left:.5px solid var(--gray-2);border-right:.5px solid var(--gray-2);background:#fff;font:700 14px/20px var(--font);vertical-align:middle;transition:background-color .12s}
 .grid th:hover{background:var(--gray-2)}
 .grid th.sorted{background:var(--info-1);color:var(--brand-primary)}
@@ -1199,14 +1201,24 @@ const Check = ({ state = 'none', off, label, onClick }) => html`<button type="bu
 
 /* ---------- Data table (custom production grid) ---------- */
 const tableCache = {};
+// Abbreviated price columns explain themselves on hover or keyboard focus.
+const COL_TIPS = { SPxM: 'Sales price per month', SPxY: 'Sales price per year', PPxM: 'Purchase price per month', PPxY: 'Purchase price per year' };
+function ColTip({ title }) {
+  const tip = COL_TIPS[title];
+  const [pos, setPos] = useState(null);
+  if (!tip) return html`<span className="t">${title}</span>`;
+  const show = e => { const r = e.currentTarget.getBoundingClientRect(); setPos({ left: r.left + r.width / 2, top: r.top }); };
+  const hide = () => setPos(null);
+  return html`<span className="t" onMouseEnter=${show} onMouseLeave=${hide}>${title}<span className="sr">, ${tip}</span></span>${pos ? ReactDOM.createPortal(html`<div className="col-tip" role="tooltip" style=${pos}>${tip}</div>`, document.body) : null}`;
+}
 function ColumnHeader({ c, sort, onSort, onHide, ctx }) {
   const sorted = sort && sort.key === c.key;
   const canSort = c.sortable !== false;
-  const label = html`<span className="t">${c.title}</span>${sorted ? html`<${Icon} name=${sort.dir === 'asc' ? 'arrow_upward' : 'arrow_downward'} size=${14} />` : null}`;
+  const label = html`<${ColTip} title=${c.title} />${sorted ? html`<${Icon} name=${sort.dir === 'asc' ? 'arrow_upward' : 'arrow_downward'} size=${14} />` : null}`;
   return html`<th className=${cx(c.align === 'right' && 'num', sorted && 'sorted', !canSort && 'static')} aria-sort=${sorted ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined} scope="col">
     <div className="th">
       ${canSort
-        ? html`<button type="button" className="th-label" onClick=${() => onSort(c.key)} title=${`Sort by ${c.title}`}>${label}</button>
+        ? html`<button type="button" className="th-label" onClick=${() => onSort(c.key)} title=${COL_TIPS[c.title] ? undefined : `Sort by ${c.title}`}>${label}</button>
           <${Dropdown} label=${`${c.title} column options`} trigger=${({ ref, toggle, open }) => html`<button ref=${ref} type="button" className="th-menu" aria-haspopup="menu" aria-expanded=${open} aria-label=${`${c.title} column options`} onClick=${toggle}><${Icon} name="expand_more" size=${16} /></button>`}>
             ${close => html`<${Fragment}>
               <${MenuItem} icon="arrow_upward" selected=${sorted && sort.dir === 'asc'} onClick=${() => { onSort(c.key, 'asc'); close(); }}>Sort ascending<//>
@@ -1215,7 +1227,7 @@ function ColumnHeader({ c, sort, onSort, onHide, ctx }) {
             <//>`}
           <//>`
         : c.header ? (typeof c.header === 'function' ? c.header(ctx) : c.header)
-        : html`<span className="th-label" style=${{ cursor: 'default' }}><span className="t">${c.title}</span></span>`}
+        : html`<span className="th-label" style=${{ cursor: 'default' }}><${ColTip} title=${c.title} /></span>`}
     </div>
   </th>`;
 }
@@ -1979,9 +1991,9 @@ function SplitModal({ sub, close }) {
         <th className="static" scope="col"><div className="th">Buyer</div></th>
         <th className="static" scope="col"><div className="th" role="radiogroup" aria-label="Allocate by">${head('alloc', 'Allocation %')}</div></th>
         <th className="static" scope="col" title="Estimated licence count. It's indicative only; billing uses the allocation %."><div className="th">${head('elc', 'ELC', !tot)}</div></th>
-        ${ops ? html`<th className="static num" scope="col"><div className="th" style=${{ justifyContent: 'flex-end' }}>PPxM</div></th><th className="static num" scope="col"><div className="th" style=${{ justifyContent: 'flex-end' }}>PPxY</div></th>` : null}
-        <th className="static num" scope="col"><div className="th" style=${{ justifyContent: 'flex-end' }}>SPxM</div></th>
-        <th className="static num" scope="col"><div className="th" style=${{ justifyContent: 'flex-end' }}>SPxY</div></th>
+        ${ops ? html`<th className="static num" scope="col"><div className="th" style=${{ justifyContent: 'flex-end' }}><${ColTip} title="PPxM" /></div></th><th className="static num" scope="col"><div className="th" style=${{ justifyContent: 'flex-end' }}><${ColTip} title="PPxY" /></div></th>` : null}
+        <th className="static num" scope="col"><div className="th" style=${{ justifyContent: 'flex-end' }}><${ColTip} title="SPxM" /></div></th>
+        <th className="static num" scope="col"><div className="th" style=${{ justifyContent: 'flex-end' }}><${ColTip} title="SPxY" /></div></th>
       </tr></thead>
       <tbody>${sp.buyers.map(b => { const a = allocOf(b.id) || 0; return html`<tr key=${b.id}>
         <td><${BuyerCell} sub=${sub} b=${b} /></td>
