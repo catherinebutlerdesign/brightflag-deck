@@ -407,6 +407,12 @@ button.qf-suffix:hover{background:var(--gray-1)}
 .qf-foot{display:flex;justify-content:space-between;gap:16px;margin-top:4px}
 .qf-btn{display:inline-flex;align-items:center;gap:8px;border:0;background:#fff;color:var(--brand-primary);padding:8px;border-radius:8px;cursor:pointer;font:400 14px/20px var(--font)}
 .qf-btn:hover{background:var(--info-1)}
+.qf-btn:disabled{color:var(--gray-4);background:#fff;cursor:default}
+.qf-btn.danger{color:var(--brand-danger)}
+.qf-foot-r{display:flex;gap:8px}
+.qf-save{display:flex;align-items:flex-start;gap:8px;border-top:1px solid var(--gray-2);padding-top:16px;margin-top:4px}
+.qf-save .field{width:320px}
+.qf-save-acts{display:flex;gap:8px;margin-top:28px}
 @media (max-width: 880px){.qf-row{flex-wrap:wrap;padding-bottom:8px;border-bottom:1px solid var(--gray-2)}.qf-field,.qf-op,.qf-val,.qf-chips{width:min(250px,100%)}}
 
 /* Checkbox, row selection, inline alert */
@@ -1162,8 +1168,21 @@ function QRow({ c, first, fields, drag, onPatch, onField, onOp, onRemove, onMove
     </div>
   </div>`;
 }
-function FilterPanel({ fields, conds, setConds, onClose }) {
+function FilterPanel({ fields, conds, setConds, onClose, onSaveView, viewNames = [], savedView, onDeleteView }) {
   const idle = { armed: null, dragId: null, over: null };
+  // Save as view: name the current conditions and keep them in the Views menu.
+  const [naming, setNaming] = useState(false);
+  const [viewName, setViewName] = useState('');
+  const [nameErr, setNameErr] = useState('');
+  const canSave = conds.some(condComplete);
+  useEffect(() => { if (naming) { const el = document.getElementById('qf-view-name'); el && el.focus(); } }, [naming]);
+  const saveView = e => {
+    e.preventDefault();
+    const n = viewName.trim();
+    if (!n) { setNameErr('Enter a name for this view.'); return; }
+    if (viewNames.some(x => x.toLowerCase() === n.toLowerCase())) { setNameErr(`You already have a view called “${n}”.`); return; }
+    onSaveView(n); setNaming(false); setViewName(''); setNameErr(''); onClose();
+  };
   const [d, setD] = useState(idle);
   const patch = (id, p) => setConds(cs => cs.map(c => c.id === id ? { ...c, ...p } : c));
   const setField = (c, key) => { const f = fields.find(x => x.key === key); const op = QOPS[f.type][0][0]; patch(c.id, { field: key, op, value: isMulti(op) ? [] : '' }); };
@@ -1193,8 +1212,19 @@ function FilterPanel({ fields, conds, setConds, onClose }) {
       onPatch=${p => patch(c.id, p)} onField=${k => setField(c, k)} onOp=${op => setOp(c, op)} onRemove=${() => remove(c.id)} onMove=${dir => move(c.id, dir)} />`)}
     <div className="qf-foot">
       <button type="button" className="qf-btn" onClick=${() => setConds(cs => [...cs, newCond(fields)])}><${Icon} name="add" size=${16} />Add a condition</button>
-      <button type="button" className="qf-btn" onClick=${() => setConds(() => [newCond(fields)])}><${Icon} name="restart_alt" size=${16} />Clear filters</button>
+      <div className="qf-foot-r">
+        ${savedView && onDeleteView ? html`<button type="button" className="qf-btn danger" onClick=${() => { onDeleteView(savedView.key); onClose(); }}><${Icon} name="delete" size=${16} />Delete view</button>` : null}
+        ${onSaveView ? html`<button type="button" className="qf-btn" disabled=${!canSave || naming} title=${canSave ? undefined : 'Complete a condition to save it as a view'} onClick=${() => setNaming(true)}><${Icon} name="bookmark_add" size=${16} />Save as view</button>` : null}
+        <button type="button" className="qf-btn" onClick=${() => setConds(() => [newCond(fields)])}><${Icon} name="restart_alt" size=${16} />Clear filters</button>
+      </div>
     </div>
+    ${naming ? html`<form className="qf-save" onSubmit=${saveView}>
+      <${Field} id="qf-view-name" label="View name" value=${viewName} onChange=${v => { setViewName(v); setNameErr(''); }} placeholder="For example, Adobe renewals" maxLength=${40} error=${nameErr} />
+      <div className="qf-save-acts">
+        <${Button} variant="text" onClick=${() => { setNaming(false); setViewName(''); setNameErr(''); }}>Cancel<//>
+        <${Button} type="submit">Save view<//>
+      </div>
+    </form>` : null}
   </div>`;
 }
 const Check = ({ state = 'none', off, label, onClick }) => html`<button type="button" role="checkbox" className=${cx('cbx', state === 'on' && 'on', state === 'mixed' && 'mixed', off && 'off')} aria-checked=${state === 'on' ? 'true' : state === 'mixed' ? 'mixed' : 'false'} aria-disabled=${off ? 'true' : undefined} aria-label=${label} onClick=${onClick}>${state === 'on' ? html`<${Icon} name="check" size=${14} wght=${700} />` : state === 'mixed' ? html`<${Icon} name="remove" size=${14} wght=${700} />` : null}</button>`;
@@ -1254,8 +1284,10 @@ function DataTable(props) {
   const [page, setPage] = useState(c0.page || 1);
   const [per, setPer] = useState(c0.per || pageSize);
   const [view, setView] = useState(c0.view || 'default');
+  const [custom, setCustom] = useState(c0.custom || []); // views saved from the Filters panel
   const [loading, setLoading] = useState(false);
-  useEffect(() => { tableCache[id] = { sort, hidden, sel, text, page, per, view, cond: condState }; });
+  const app = useApp();
+  useEffect(() => { tableCache[id] = { sort, hidden, sel, text, page, per, view, cond: condState, custom }; });
   const firstQ = useRef(true);
   useEffect(() => { if (firstQ.current) { firstQ.current = false; return; } setPage(1); }, [externalQuery]);
   useEffect(() => { if (!loading) return; const t = setTimeout(() => setLoading(false), 700); return () => clearTimeout(t); }, [loading]);
@@ -1265,7 +1297,9 @@ function DataTable(props) {
   const sumW = cols.reduce((n, c) => n + (typeof c.width === 'number' ? c.width : 0), 0) || 1;
   const hay = r => (searchFields ? searchFields(r) : columns.map(c => (c.text ? c.text(r) : r[c.key]))).filter(x => x != null).join(' ').toLowerCase();
   let data = rows;
-  const v = views && views.find(x => x.key === view);
+  const builtIn = views || [{ key: 'default', label: 'Default view' }];
+  const allViews = [...builtIn, ...custom];
+  const v = allViews.find(x => x.key === view);
   if (v && v.test) data = data.filter(v.test);
   filters.forEach(f => { const s = sel[f.key]; if (s && s.length) data = data.filter(r => s.includes(f.get(r))); });
   if (queryFields && cond) data = applyQuery(data, cond, queryFields);
@@ -1289,6 +1323,25 @@ function DataTable(props) {
   const condsNow = cond || (queryFields ? (blank.current || (blank.current = [newCond(queryFields)])) : null);
   const setConds = fn => { setCondRaw(cs => fn(cs || condsNow)); setPage(1); };
   const reset = () => { setSel({}); setText(''); setView('default'); setPage(1); if (queryFields) setCondRaw(null); };
+  // A saved view is a named set of Filters panel conditions.
+  const pickView = x => {
+    setView(x.key); setPage(1);
+    if (x.custom) setCondRaw(x.cond.map(c => ({ ...c, id: ++qSeq, value: Array.isArray(c.value) ? [...c.value] : c.value })));
+    else if (v && v.custom) setCondRaw(null);
+  };
+  const saveView = label => {
+    const snap = condsNow.filter(condComplete).map(c => ({ ...c, value: Array.isArray(c.value) ? [...c.value] : c.value }));
+    const key = 'custom-' + Date.now();
+    setCustom(cs => [...cs, { key, label, cond: snap, custom: true }]);
+    setView(key); setPage(1);
+    if (app) app.notify(`View “${label}” saved`);
+  };
+  const deleteView = key => {
+    const gone = custom.find(x => x.key === key);
+    setCustom(cs => cs.filter(x => x.key !== key));
+    if (view === key) { setView('default'); setCondRaw(null); setPage(1); }
+    if (app && gone) app.notify(`View “${gone.label}” deleted`, 'info');
+  };
   const doSort = (key, dir) => { setSort(s => dir ? { key, dir } : (s && s.key === key ? (s.dir === 'asc' ? { key, dir: 'desc' } : null) : { key, dir: 'asc' })); setPage(1); };
   const toggleSel = (k, val) => { setSel(s => { const a = s[k] || []; return { ...s, [k]: a.includes(val) ? a.filter(x => x !== val) : [...a, val] }; }); setPage(1); };
   const sortable = columns.filter(c => c.sortable !== false);
@@ -1297,13 +1350,13 @@ function DataTable(props) {
   const furn = furniture ? html`<div className="furniture">
     <div className="furniture-left">
       ${lite ? null : html`<${Dropdown} label="Views" trigger=${({ ref, toggle, open }) => html`<button ref=${ref} type="button" className=${cx('tbtn', view !== 'default' && 'selected')} aria-haspopup="menu" aria-expanded=${open} onClick=${toggle}><${Icon} name="grid_view" size=${14} />${(v && v.label) || 'Default view'}</button>`}>
-        ${close => (views || [{ key: 'default', label: 'Default view' }]).map(x => html`<${MenuItem} key=${x.key} selected=${x.key === view} onClick=${() => { setView(x.key); setPage(1); close(); }}>${x.label}<//>`)}
+        ${close => html`<${Fragment}>${builtIn.map(x => html`<${MenuItem} key=${x.key} selected=${x.key === view} onClick=${() => { pickView(x); close(); }}>${x.label}<//>`)}${custom.length ? html`<${MenuDivider} /><${MenuTitle}>Saved views<//>${custom.map(x => html`<${MenuItem} key=${x.key} icon="bookmark" selected=${x.key === view} onClick=${() => { pickView(x); close(); }}>${x.label}<//>`)}` : null}<//>`}
       <//>`}
       <${Dropdown} label="Sort" minWidth=${200} trigger=${({ ref, toggle, open }) => html`<button ref=${ref} type="button" className=${cx('tbtn', sort && 'selected')} aria-haspopup="menu" aria-expanded=${open} onClick=${toggle}><${Icon} name="swap_vert" size=${14} />Sort</button>`}>
         ${close => html`<${MenuTitle}>Sort by<//>${sortable.map(c => html`<${MenuItem} key=${c.key} selected=${sort && sort.key === c.key} trailing=${sort && sort.key === c.key ? html`<${Icon} name=${sort.dir === 'asc' ? 'arrow_upward' : 'arrow_downward'} size=${16} style=${{ color: 'var(--brand-primary)' }} />` : null} onClick=${() => doSort(c.key)}>${c.title}<//>`)}${sort ? html`<${MenuDivider} /><${MenuItem} onClick=${() => { setSort(null); close(); }}>Clear sort<//>` : null}`}
       <//>
       ${queryFields ? html`<${Dropdown} label="Filters" role="dialog" popClass="qf-pop" noArrowNav trigger=${({ ref, toggle, open }) => html`<button ref=${ref} type="button" className=${cx('tbtn', (qCount || open) && 'selected')} aria-haspopup="dialog" aria-expanded=${open} onClick=${toggle}><${Icon} name="filter_list" size=${14} />Filter${qCount ? ` (${qCount})` : ''}</button>`}>
-        ${close => html`<${FilterPanel} fields=${queryFields} conds=${condsNow} setConds=${setConds} onClose=${close} />`}
+        ${close => html`<${FilterPanel} fields=${queryFields} conds=${condsNow} setConds=${setConds} onClose=${close} onSaveView=${lite ? null : saveView} viewNames=${allViews.map(x => x.label)} savedView=${v && v.custom ? v : null} onDeleteView=${deleteView} />`}
       <//>` : html`<${Dropdown} label="Filter" minWidth=${240} trigger=${({ ref, toggle, open }) => html`<button ref=${ref} type="button" className=${cx('tbtn', activeFilters && 'selected')} aria-haspopup="menu" aria-expanded=${open} onClick=${toggle}><${Icon} name="filter_list" size=${14} />Filter${activeFilters ? ` (${activeFilters})` : ''}</button>`}>
         ${close => html`<div className="mi-field"><div className="input"><${Icon} name="search" size=${16} style=${{ marginLeft: 12, color: 'var(--gray-4)' }} /><input aria-label="Filter rows" placeholder="Filter rows" value=${text} onChange=${e => { setText(e.target.value); setPage(1); }} onKeyDown=${e => e.key === 'Enter' && close()} /></div></div>
           ${filters.map(f => html`<${Fragment} key=${f.key}><${MenuTitle}>${f.label}<//>${f.options.map(o => html`<${MenuItem} key=${o} check=${(sel[f.key] || []).includes(o)} onClick=${() => toggleSel(f.key, o)}>${o}<//>`)}<//>`)}
