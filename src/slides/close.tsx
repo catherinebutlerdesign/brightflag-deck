@@ -10,12 +10,12 @@ import { Caption, Eyebrow, Head, Slide, screen } from "../deck/kit"
 export function Collaboration() {
   const col = (title: string, items: string[], tone: "white" | "navy" = "white") => (
     <Card className={cn("rounded-2xl border-0 shadow-sm", tone === "navy" && "bg-navy text-white")}>
-      <CardHeader className="p-9 pb-4"><CardTitle className={cn("text-[22px] uppercase tracking-[0.08em]", tone === "navy" ? "text-teal-light" : "text-teal")}>{title}</CardTitle></CardHeader>
-      <CardContent className="flex flex-col gap-4 p-9 pt-0">
+      <CardHeader className="p-8 pb-4"><CardTitle className={cn("text-[19px] leading-snug uppercase tracking-[0.08em]", tone === "navy" ? "text-teal-light" : "text-teal")}>{title}</CardTitle></CardHeader>
+      <CardContent className="flex flex-col gap-4 p-8 pt-0">
         {items.map((t, i) => (
           <div key={t} className="flex flex-col gap-4">
             {i ? <Separator className={tone === "navy" ? "bg-white/15" : undefined} /> : null}
-            <span className={cn("text-[22px] leading-snug", tone === "navy" ? "text-white/90" : "text-ink")}>{t}</span>
+            <span className={cn("text-[20px] leading-snug", tone === "navy" ? "text-white/90" : "text-ink")}>{t}</span>
           </div>
         ))}
       </CardContent>
@@ -26,12 +26,13 @@ export function Collaboration() {
       <div className="absolute left-[100px] top-[80px] w-[1200px]">
         <Head eyebrow="12 · Collaboration" title="Product judgement meets engineering reality." lead="Designing a useful experience also means negotiating the feasible one." />
       </div>
-      <div className="absolute left-[100px] right-[100px] top-[380px] grid grid-cols-3 gap-8">
-        {col("With Product", ["Clarify the most important user problem.", "Define a release boundary, and what can wait.", "Keep exception handling in scope."])}
-        {col("Shared artefacts", ["Service blueprint: one model of the journey.", "Four scenarios tested in every review: purchase, spot what needs attention, know who acts next, change without conflict.", "Clickable prototypes for each actor."], "navy")}
-        {col("With Engineering", ["Surface dependencies and tech debt early.", "Discuss alternatives to inline editing.", "Use existing templates without losing clarity."])}
+      <div className="absolute left-[100px] right-[100px] top-[380px] grid grid-cols-4 gap-6">
+        {col("With Product", ["PMs set the commercial information priorities.", "Define a release boundary, and what can wait.", "Keep exception handling in scope."])}
+        {col("Shared artefacts", ["Service blueprint and object map.", "Four scenarios checked in every design review: purchase, spot what needs attention, know who acts next, change without conflict.", "Clickable prototypes for each actor."], "navy")}
+        {col("With Engineering", ["Surface dependencies and tech debt early.", "Work within legacy data, rules and terminology.", "Find alternatives to inline editing."])}
+        {col("Leadership & Customer Success", ["Leadership validated it against business goals.", "Customer Success Managers gave stakeholder feedback.", "Stakeholder review, not formal usability testing."])}
       </div>
-      <div className="absolute left-[100px] right-[100px] top-[780px] flex items-center gap-6 rounded-2xl border-2 border-dashed border-teal/40 px-10 py-7">
+      <div className="absolute bottom-[64px] left-[100px] right-[100px] flex items-center gap-6 rounded-2xl border-2 border-dashed border-teal/40 px-10 py-7">
         {["Differing views", "Options on the table", "Decision and why"].map((t, i) => (
           <div key={t} className="flex items-center gap-6">
             {i ? <ArrowRight className="size-7 text-teal" /> : null}

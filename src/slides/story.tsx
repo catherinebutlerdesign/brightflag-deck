@@ -184,7 +184,7 @@ export function Discovery() {
         <div className="flex w-[620px] flex-col gap-3 pb-2">
           <div className="text-[19px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Methods</div>
           <div className="flex flex-wrap gap-2.5">
-            {["Service blueprint", "SME sessions on lifecycle rules", "Actor scenarios", "GA4 engagement data"].map(m => (
+            {["Heap analytics (PyraCloud)", "User interviews", "Object relationship map", "Service blueprint", "SME sessions on lifecycle rules"].map(m => (
               <Badge key={m} variant="secondary" className="rounded-full px-4 py-1.5 text-[18px] font-medium">{m}</Badge>
             ))}
           </div>

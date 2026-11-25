@@ -213,6 +213,16 @@ export function Anatomy() {
           <Caption>Client subscription list. Status reads as a signal: what’s in flight, what has ended.</Caption>
         </div>
       </div>
+      <div className="absolute bottom-[48px] left-[100px] flex w-[1240px] items-stretch overflow-hidden rounded-2xl border border-border bg-white text-[21px] shadow-sm">
+        <div className="flex flex-1 items-center gap-4 px-7 py-4">
+          <Badge variant="secondary" className="rounded-md px-3 py-1 text-[17px] font-semibold">PMs</Badge>
+          <span className="text-ink">Which commercial attributes go in the highlights</span>
+        </div>
+        <div className="flex flex-[1.35] items-center gap-4 bg-navy px-7 py-4 text-white">
+          <Badge className="rounded-md bg-teal-light px-3 py-1 text-[17px] font-semibold text-navy">Me</Badge>
+          <span>Hierarchy, tabs, where actions sit, and the shared template</span>
+        </div>
+      </div>
       <div className="absolute right-[100px] top-[230px] flex w-[420px] flex-col gap-6">
         {ANAT.map(([k, t]) => <Point key={k} n={k} title={t} />)}
         <Separator className="my-2" />
