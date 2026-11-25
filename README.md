@@ -32,6 +32,17 @@ The deck needs an internet connection for the Inter font, and the live slides ne
 
 `#/7` in the URL jumps to slide 7.
 
+### The script
+
+The speaker notes are a full script, about 18 minutes of speech that fills the 28.5-minute plan once you add pauses and your own stories. In the notes:
+
+- plain text is what you say
+- *italic boxes* are stage directions
+- **teal lines** take you into the next slide
+- **highlighted [brackets]** are gaps only you can fill: your own examples, scope calls and collaboration story
+
+Edit it in `src/slides/index.tsx`.
+
 ### Screen sharing with private notes
 
 1. Open the deck and press **P**. The presenter view opens in a separate window.

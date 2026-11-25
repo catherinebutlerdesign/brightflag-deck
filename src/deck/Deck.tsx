@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import { slides, type SlideDef } from "../slides"
 import { StageCtx } from "./Live"
 import { openPresenter, useDeckChannel } from "./sync"
+import { NotesBody } from "./Notes"
 
 const W = 1920
 const H = 1080
@@ -174,10 +175,7 @@ function NotesPanel({ def, next, i, height, elapsed, running, planned, total }: 
           <span className="text-sm font-semibold text-[#76cad2]">{def.section}</span>
           {def.minutes ? <span className="text-sm text-white/50">· {def.minutes} min</span> : null}
         </div>
-        <ul className="list-disc space-y-2 pl-5 text-[17px] leading-relaxed text-white/90">
-          {def.notes.map((n, k) => <li key={k}>{n}</li>)}
-          {import.meta.env.VITE_PUBLIC_BUILD ? <li className="list-none text-white/50">Speaker notes aren’t included in the hosted version. Run the deck locally to see them.</li> : null}
-        </ul>
+        <NotesBody notes={def.notes} size="md" />
       </div>
       <div className="flex w-[300px] shrink-0 flex-col gap-3">
         <div className={cn("flex items-center gap-2 rounded-lg px-3 py-2 text-sm", behind ? "bg-[#bb1425]/30" : "bg-white/5")}>
