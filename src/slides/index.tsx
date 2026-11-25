@@ -17,7 +17,7 @@ export type SlideDef = {
 /* Speaker notes are compiled out of the hosted build (VITE_PUBLIC_BUILD=1, set in the
    Pages workflow), so they never ship to the public site. Run locally to see them.
 
-   Planned timings add up to about 26 minutes for the main presentation (20–30 allowed).
+   Planned timings add up to 28.5 minutes for the main presentation (20–30 allowed).
    Appendix slides carry no time. Notes marked "From the Figma deck" are your original presenter notes. */
 export const slides: SlideDef[] = [
   {

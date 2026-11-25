@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { ChevronLeft, ChevronRight, LayoutGrid, Maximize, NotebookPen, Printer, Timer } from "lucide-react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { ChevronLeft, ChevronRight, LayoutGrid, Maximize, NotebookPen, Presentation, Printer, Timer } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { slides, type SlideDef } from "../slides"
 import { StageCtx } from "./Live"
+import { openPresenter, useDeckChannel } from "./sync"
 
 const W = 1920
 const H = 1080
@@ -27,7 +28,7 @@ function useViewport() {
 }
 
 /** Renders a 1920×1080 slide scaled to fit a box. */
-function Scaled({ def, width, height }: { def: SlideDef; width: number; height: number }) {
+export function Scaled({ def, width, height }: { def: SlideDef; width: number; height: number }) {
   const s = Math.min(width / W, height / H)
   return (
     <div style={{ width: W * s, height: H * s }} className="relative overflow-hidden">
@@ -38,7 +39,7 @@ function Scaled({ def, width, height }: { def: SlideDef; width: number; height: 
   )
 }
 
-const fmt = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`
+export const fmt = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`
 
 export function Deck() {
   const [i, setI] = useState(readHash)
@@ -53,6 +54,16 @@ export function Deck() {
   useEffect(() => {
     history.replaceState(null, "", `#/${i + 1}`)
   }, [i])
+
+  // Keep a presenter view in another window in step: tell it where we are,
+  // and follow it when it moves.
+  const iRef = useRef(i)
+  iRef.current = i
+  const post = useDeckChannel(m => {
+    if (m.type === "goto") go(m.index)
+    if (m.type === "hello") post({ type: "state", index: iRef.current })
+  })
+  useEffect(() => { post({ type: "state", index: i }) }, [i, post])
   useEffect(() => {
     const on = () => setI(readHash())
     window.addEventListener("hashchange", on)
@@ -80,6 +91,7 @@ export function Deck() {
       else if (k === "g" || k === "Escape") setGrid(v => !v)
       else if (k === "f") document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()
       else if (k === "t") setStart(s => (s == null ? Date.now() : null))
+      else if (k === "p") openPresenter(i)
     }
     window.addEventListener("keydown", on)
     return () => window.removeEventListener("keydown", on)
@@ -143,7 +155,8 @@ function Controls({ i, go, notes, setNotes, setGrid }: { i: number; go: (n: numb
       <span className="tabular px-2 text-sm text-white/80">{i + 1} / {slides.length}</span>
       {tip("Next", "→", <ChevronRight />, () => go(i + 1))}
       <div className="mx-1 h-5 w-px bg-white/20" />
-      {tip("Speaker notes", "N", <NotebookPen />, () => setNotes(v => !v), notes)}
+      {tip("Presenter view in a new window", "P", <Presentation />, () => openPresenter(i))}
+      {tip("Speaker notes below the slide", "N", <NotebookPen />, () => setNotes(v => !v), notes)}
       {tip("All slides", "G", <LayoutGrid />, () => setGrid(true))}
       {tip("Full screen", "F", <Maximize />, () => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()))}
       {tip("Save as PDF", "⌘P", <Printer />, () => window.print())}

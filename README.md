@@ -23,13 +23,22 @@ The deck needs an internet connection for the Inter font, and the live slides ne
 | --- | --- |
 | → / Space / PageDown | Next slide |
 | ← / PageUp | Previous slide |
-| N | Speaker notes, timer and next-slide preview |
+| P | Presenter view in its own window: notes, timer, current and next slide |
+| N | Speaker notes below the slide (handy for rehearsing on one screen) |
 | T | Start or stop the timer (also starts on the first →) |
 | G or Esc | Slide overview |
 | F | Full screen |
 | ⌘P | Save as PDF (one slide per page, live slides show a still) |
 
 `#/7` in the URL jumps to slide 7.
+
+### Screen sharing with private notes
+
+1. Open the deck and press **P**. The presenter view opens in a separate window.
+2. In Zoom, Teams or Meet, share **only the deck's window or tab**, not your whole screen.
+3. Keep the presenter view on your side. Arrow keys, a clicker or its Next button move both windows together.
+
+LIVE slides run only in the deck window, so click their step buttons there. The presenter view shows a still of them.
 
 ## Live slides
 
