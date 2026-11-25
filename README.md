@@ -25,6 +25,7 @@ The deck needs an internet connection for the Inter font, and the live slides ne
 | ← / PageUp | Previous slide |
 | P | Presenter view in its own window: notes, timer, current and next slide |
 | N | Speaker notes below the slide (handy for rehearsing on one screen) |
+| R | Private revision page in a new tab (local only, never in the hosted deck) |
 | T | Start or stop the timer (also starts on the first →) |
 | G or Esc | Slide overview |
 | F | Full screen |
@@ -44,6 +45,10 @@ The speaker notes are a full script built around the evidence behind each decisi
 - **If they ask** lists likely follow-up questions with short answers, after the script
 
 Edit it in `src/slides/index.tsx`.
+
+### Private revision page
+
+Press **R** (or open `?prep`) when running locally. It covers four decisions (object page, lifecycle, change order, split billing) with diagrams, an embedded prototype for each, the revision sheet with a "hide answers" practice mode, and the source notes. It lives in `src/prep/Prep.tsx` and is compiled out of the hosted build, so it never reaches the public link.
 
 ### Screen sharing with private notes
 

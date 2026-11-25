@@ -24,6 +24,13 @@ export function useDeckChannel(onMessage: (m: DeckMsg) => void) {
 }
 
 export const isPresenter = () => new URLSearchParams(location.search).has("presenter")
+export const isPrep = () => new URLSearchParams(location.search).has("prep")
+
+/** Opens the private revision page in a new tab. Local builds only. */
+export function openPrep() {
+  if (import.meta.env.VITE_PUBLIC_BUILD) return
+  window.open(`${location.pathname}?prep`, "brightflag-prep")
+}
 
 export function openPresenter(index: number) {
   const url = `${location.pathname}?presenter#/${index + 1}`

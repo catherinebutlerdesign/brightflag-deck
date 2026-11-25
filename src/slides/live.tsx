@@ -1,11 +1,7 @@
 import { Badge } from "@/components/ui/badge"
-import { LivePrototype, type Driver, type Step } from "../deck/Live"
+import { LivePrototype, type Step } from "../deck/Live"
+import { FLOWS } from "../deck/flows"
 import { Eyebrow, Slide, screen } from "../deck/kit"
-
-const SPLIT = "SUB-7890-1234-5678" // Creative Cloud Split Billing (Adobe, split across three buyers)
-const CC = "SUB-2345-6789-1234" // Creative Cloud All Apps Pro (Adobe)
-const TERMINATING = "SUB-8901-2345-6789"
-const step = (label: string, run: (d: Driver) => Promise<void>): Step => ({ label, run })
 
 function LiveSlide({ eyebrow, title, actor, steps, poster, file, hint }: { eyebrow: string; title: string; actor?: "client" | "vendor" | "ops"; steps?: Step[]; poster: string; file?: string; hint?: string }) {
   return (
@@ -28,12 +24,7 @@ export const LiveLifecycle = () => (
     title="Status you can act on, in the real prototype."
     actor="client"
     poster={screen("01c-list-needs-attention-client")}
-    steps={[
-      step("Saved views", d => d.click("button", /Default view/, "the saved views menu")),
-      step("Needs attention", d => d.click("[role=menuitem]", "Needs attention")),
-      step("Open a Terminating one", d => d.openSub(TERMINATING)),
-      step("More actions", d => d.click("button[aria-label='More actions']")),
-    ]}
+    steps={FLOWS.lifecycle}
   />
 )
 
@@ -43,17 +34,7 @@ export const LiveChange = () => (
     title="Change a live subscription."
     actor="client"
     poster={screen("32-change-items-increase")}
-    steps={[
-      step("Open", d => d.openSub(SPLIT)),
-      step("Edit", d => d.click(".obj-ribbon button", /^Edit$/)),
-      step("Qty 6 → 3", d => d.type("input[aria-label^='New quantity for']", "3", "the quantity field")),
-      step("Qty 6 → 10", d => d.type("input[aria-label^='New quantity for']", "10", "the quantity field")),
-      step("Next", d => d.click(".wizard-foot button", /^Next$/)),
-      step("Bill one buyer", d => d.click(".pick-row", /Stark Industries II(?!I)/, "Stark Industries II")),
-      step("Review", async d => { await d.click(".wizard-foot button", /^Next$/); await d.click(".wizard-foot button", /^Next$/) }),
-      step("Place order", async d => { await d.click(".wizard-foot button", /^Place order$/); await d.pause(1300) }),
-      step("Back to subscription", d => d.click(".wizard-foot button", /^Close$/)),
-    ]}
+    steps={FLOWS.change}
   />
 )
 
@@ -63,14 +44,7 @@ export const LiveSplit = () => (
     title="Make split billing understandable."
     actor="client"
     poster={screen("10-split-modal-client")}
-    steps={[
-      step("Open subscription", d => d.openSub(SPLIT)),
-      step("Split billing tab", d => d.tab("Split billing")),
-      step("Edit split billing", d => d.click(".tabbar .ribbon-actions button", /^Edit$/)),
-      step("Type 35%", d => d.type("input[aria-label='Allocation % for Stark Industries II']", "35", "the allocation field")),
-      step("Save", d => d.click("[role=dialog] button", /^Save$/)),
-      step("Allocate by ELC", d => d.click("[role=radio]", /ELC/)),
-    ]}
+    steps={FLOWS.split}
   />
 )
 
@@ -80,14 +54,7 @@ export const LivePrice = () => (
     title="Keep price edits explainable."
     actor="ops"
     poster={screen("20-price-modal-ops")}
-    steps={[
-      step("Open subscription", d => d.openSub(SPLIT)),
-      step("Entitlements", d => d.tab("Entitlements")),
-      step("Edit price", d => d.click("button[aria-label^='Edit price for']")),
-      step("Markup 12%", d => d.type("#f-markup", "12", "the markup field")),
-      step("Set unit SP", async d => { await d.click("[role=radio][aria-label='Unit SP']"); await d.type("#f-sp", "115", "the unit SP field") }),
-      step("Margin 120%", async d => { await d.click("[role=radio][aria-label='Margin']"); await d.type("#f-margin", "120", "the margin field") }),
-    ]}
+    steps={FLOWS.price}
   />
 )
 
@@ -97,13 +64,7 @@ export const LiveExceptions = () => (
     title="Treat exceptions as primary UX."
     actor="vendor"
     poster={screen("52-select-items-already")}
-    steps={[
-      step("Open subscription", d => d.openSub(CC)),
-      step("Edit subscription", d => d.click(".obj-ribbon button", /^Edit$/)),
-      step("Items", d => d.click(".step-btn", "Items")),
-      step("Add item", d => d.click("button", /Add item/)),
-      step("Pick a usage item", async d => { await d.click("tr.row-off", /Usage/, "a usage-billed item"); await d.reveal("[role=dialog] .inline-alert", "the billing model alert") }),
-    ]}
+    steps={FLOWS.exceptions}
   />
 )
 
@@ -113,13 +74,7 @@ export const LiveViews = () => (
     title="Same subscription. Switch who’s looking."
     actor="client"
     poster={screen("03-detail-entitlements-ops")}
-    steps={[
-      step("Open as client", d => d.openSub(SPLIT)),
-      step("Entitlements", d => d.tab("Entitlements")),
-      step("View as vendor", d => d.actor("Vendor")),
-      step("View as operations", d => d.actor("Operations")),
-      step("Back to client", d => d.actor("Client")),
-    ]}
+    steps={FLOWS.views}
   />
 )
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { ChevronLeft, ChevronRight, LayoutGrid, Maximize, NotebookPen, Presentation, Printer, Timer } from "lucide-react"
+import { BookOpenCheck, ChevronLeft, ChevronRight, LayoutGrid, Maximize, NotebookPen, Presentation, Printer, Timer } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { slides, type SlideDef } from "../slides"
 import { StageCtx } from "./Live"
-import { openPresenter, useDeckChannel } from "./sync"
+import { openPrep, openPresenter, useDeckChannel } from "./sync"
 import { NotesBody } from "./Notes"
 
 const W = 1920
@@ -93,6 +93,7 @@ export function Deck() {
       else if (k === "f") document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()
       else if (k === "t") setStart(s => (s == null ? Date.now() : null))
       else if (k === "p") openPresenter(i)
+      else if (k === "r") openPrep()
     }
     window.addEventListener("keydown", on)
     return () => window.removeEventListener("keydown", on)
@@ -158,6 +159,7 @@ function Controls({ i, go, notes, setNotes, setGrid }: { i: number; go: (n: numb
       <div className="mx-1 h-5 w-px bg-white/20" />
       {tip("Presenter view in a new window", "P", <Presentation />, () => openPresenter(i))}
       {tip("Speaker notes below the slide", "N", <NotebookPen />, () => setNotes(v => !v), notes)}
+      {import.meta.env.VITE_PUBLIC_BUILD ? null : tip("Private revision page", "R", <BookOpenCheck />, openPrep)}
       {tip("All slides", "G", <LayoutGrid />, () => setGrid(true))}
       {tip("Full screen", "F", <Maximize />, () => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()))}
       {tip("Save as PDF", "⌘P", <Printer />, () => window.print())}

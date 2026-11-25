@@ -115,6 +115,7 @@ export function LivePrototype({
   width,
   height,
   hint = "Click inside to explore freely",
+  inDeck = true,
 }: {
   file?: string
   actor?: "client" | "vendor" | "ops"
@@ -123,6 +124,7 @@ export function LivePrototype({
   width: number
   height: number
   hint?: string
+  inDeck?: boolean
 }) {
   const { live } = useContext(StageCtx)
   const frame = useRef<HTMLIFrameElement>(null)
@@ -218,7 +220,7 @@ export function LivePrototype({
         ) : null}
       </div>
       <div className="flex items-center gap-2 text-[16px] text-muted-foreground">
-        <MousePointerClick className="size-4" /> {hint}. A clicker still moves slides; arrow keys do once nothing in the frame is focused.
+        <MousePointerClick className="size-4" /> {hint}.{inDeck ? " A clicker still moves slides; arrow keys do once nothing in the frame is focused." : ""}
       </div>
     </div>
   )
