@@ -34,12 +34,14 @@ The deck needs an internet connection for the Inter font, and the live slides ne
 
 ### The script
 
-The speaker notes are a full script, about 18 minutes of speech that fills the 28.5-minute plan once you add pauses and your own stories. In the notes:
+The speaker notes are a full script built around the evidence behind each decision and who owned it. The plan is 24.5 minutes: about 13–14 minutes of speech, which comes to roughly 18–21 minutes with pauses, pointing and your own examples. In the notes:
 
 - plain text is what you say
+- **small teal tags** (Problem, Evidence, Insight, Alternatives, Decision, Trade-off, Validation, Outcome) mark each step of a decision story; don't read them aloud
 - *italic boxes* are stage directions
 - **teal lines** take you into the next slide
-- **highlighted [brackets]** are gaps only you can fill: your own examples, scope calls and collaboration story
+- **highlighted [brackets]** are gaps only you can fill
+- **If they ask** lists likely follow-up questions with short answers, after the script
 
 Edit it in `src/slides/index.tsx`.
 
