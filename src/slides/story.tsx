@@ -180,7 +180,7 @@ export function Discovery() {
   return (
     <Slide tone="white">
       <div className="absolute left-[100px] top-[70px] flex w-[1720px] items-end justify-between gap-16">
-        <Head eyebrow="03 · Discovery" title="Mapping the service before designing the screens." className="w-[1000px]" />
+        <Head eyebrow="03 · Discovery" title="Mapping the service alongside the first designs." className="w-[1000px]" />
         <div className="flex w-[620px] flex-col gap-3 pb-2">
           <div className="text-[19px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Methods</div>
           <div className="flex flex-wrap gap-2.5">
