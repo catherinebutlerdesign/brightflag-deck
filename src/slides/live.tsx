@@ -81,7 +81,7 @@ export const LiveViews = () => (
 export const LiveMobile = () => (
   <LiveSlide
     eyebrow="Appendix · iPhone prototype"
-    title="The same model on iPhone, built on iOS 27 components."
+    title="The same model on iPhone, built with iOS components."
     file="subscriptions-mobile.html"
     poster={screen("ios-list")}
     hint="Switch role and appearance from the controls beside the phone"
