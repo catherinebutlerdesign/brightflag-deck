@@ -1271,7 +1271,7 @@ function SkeletonRows({ cols, count }) {
   return Array.from({ length: count }, (_, i) => html`<tr key=${'sk' + i} aria-hidden="true">${cols.map(c => html`<td key=${c.key} className=${c.align === 'right' ? 'num' : ''}><div className=${cx('skel', i > 5 && 'faint')} style=${c.align === 'right' ? { marginLeft: 'auto' } : null}></div></td>`)}</tr>`);
 }
 function DataTable(props) {
-  const { id, columns, rows, rowKey = r => r.id, onRowClick, filters = [], views, defaultSort = null, pageSize = 10, paginate = true, showCount = true, empty, footnote, minWidth = 0, externalQuery = '', searchFields, furniture = true, foot, emptyRows = 8, lite = false, queryFields, rowClass } = props;
+  const { id, columns, rows, rowKey = r => r.id, onRowClick, filters = [], views, defaultSort = null, pageSize = 10, paginate = true, showCount = true, empty, footnote, minWidth = 0, externalQuery = '', searchFields, furniture = true, foot, emptyRows = 8, lite = false, queryFields, rowClass, saveViews = true } = props;
   const c0 = tableCache[id] || {};
   // Filters panel conditions: owned here, or by the parent when it passes conds / setConds.
   const [condState, setCondState] = useState(c0.cond || null);
@@ -1356,7 +1356,7 @@ function DataTable(props) {
         ${close => html`<${MenuTitle}>Sort by<//>${sortable.map(c => html`<${MenuItem} key=${c.key} selected=${sort && sort.key === c.key} trailing=${sort && sort.key === c.key ? html`<${Icon} name=${sort.dir === 'asc' ? 'arrow_upward' : 'arrow_downward'} size=${16} style=${{ color: 'var(--brand-primary)' }} />` : null} onClick=${() => doSort(c.key)}>${c.title}<//>`)}${sort ? html`<${MenuDivider} /><${MenuItem} onClick=${() => { setSort(null); close(); }}>Clear sort<//>` : null}`}
       <//>
       ${queryFields ? html`<${Dropdown} label="Filters" role="dialog" popClass="qf-pop" noArrowNav trigger=${({ ref, toggle, open }) => html`<button ref=${ref} type="button" className=${cx('tbtn', (qCount || open) && 'selected')} aria-haspopup="dialog" aria-expanded=${open} onClick=${toggle}><${Icon} name="filter_list" size=${14} />Filter${qCount ? ` (${qCount})` : ''}</button>`}>
-        ${close => html`<${FilterPanel} fields=${queryFields} conds=${condsNow} setConds=${setConds} onClose=${close} onSaveView=${lite ? null : saveView} viewNames=${allViews.map(x => x.label)} savedView=${v && v.custom ? v : null} onDeleteView=${deleteView} />`}
+        ${close => html`<${FilterPanel} fields=${queryFields} conds=${condsNow} setConds=${setConds} onClose=${close} onSaveView=${lite || !saveViews ? null : saveView} viewNames=${allViews.map(x => x.label)} savedView=${v && v.custom ? v : null} onDeleteView=${deleteView} />`}
       <//>` : html`<${Dropdown} label="Filter" minWidth=${240} trigger=${({ ref, toggle, open }) => html`<button ref=${ref} type="button" className=${cx('tbtn', activeFilters && 'selected')} aria-haspopup="menu" aria-expanded=${open} onClick=${toggle}><${Icon} name="filter_list" size=${14} />Filter${activeFilters ? ` (${activeFilters})` : ''}</button>`}>
         ${close => html`<div className="mi-field"><div className="input"><${Icon} name="search" size=${16} style=${{ marginLeft: 12, color: 'var(--gray-4)' }} /><input aria-label="Filter rows" placeholder="Filter rows" value=${text} onChange=${e => { setText(e.target.value); setPage(1); }} onKeyDown=${e => e.key === 'Enter' && close()} /></div></div>
           ${filters.map(f => html`<${Fragment} key=${f.key}><${MenuTitle}>${f.label}<//>${f.options.map(o => html`<${MenuItem} key=${o} check=${(sel[f.key] || []).includes(o)} onClick=${() => toggleSel(f.key, o)}>${o}<//>`)}<//>`)}
@@ -1704,11 +1704,21 @@ function entitlementColumns(actorKey, sub, onEdit) {
   if (actorKey === 'vendor') return [name, qty, unit('PP'), m('PP'), y('PP'), action];
   return [name, qty, unit('PP'), m('PP'), y('PP'), yieldCol, unit('SP'), m('SP'), y('SP'), action];
 }
+const uniq = (rows, get, base = []) => [...new Set([...base, ...rows.map(get).filter(Boolean)])];
 function EntitlementsTab({ sub }) {
   const { actor, openModal } = useApp();
   const cols = entitlementColumns(actor.key, sub, it => openModal('price', sub.id, { itemId: it.id }));
   const terminated = sub.status === 'Terminated';
-  return html`<${DataTable} key=${actor.key + sub.id} id=${'ent-' + actor.key + sub.id} columns=${cols} rows=${terminated ? [] : sub.items} paginate=${false} showCount=${false}
+  const k = actor.key;
+  const qf = [
+    { key: 'name', label: 'Name', type: 'text', get: it => it.name },
+    { key: 'id', label: 'Item ID', type: 'text', get: it => `${it.id} ${it.ext}` },
+    { key: 'qty', label: 'Quantity', type: 'number', get: it => it.period === 'month' ? null : it.qty },
+    ...(k !== 'client' ? [{ key: 'pp', label: 'Unit purchase price', type: 'number', unit: 'GBP', get: it => it.unitPP || null }] : []),
+    ...(k === 'ops' ? [{ key: 'yield', label: 'Yield (markup %)', type: 'number', unit: '%', get: it => it.markup }] : []),
+    ...(k !== 'vendor' ? [{ key: 'sp', label: 'Unit SP', type: 'number', unit: 'GBP', get: it => it.unitPP ? unitSP(it) : null }] : [])
+  ];
+  return html`<${DataTable} key=${actor.key + sub.id} id=${'ent-' + actor.key + sub.id} queryFields=${qf} saveViews=${false} columns=${cols} rows=${terminated ? [] : sub.items} paginate=${false} showCount=${false}
     minWidth=${actor.key === 'ops' ? 1300 : 900} footnote=${terminated ? null : FOOTNOTE}
     empty=${{ title: 'No entitlements in this subscription', text: 'This subscription has been terminated, so it has no entitlements.' }} />`;
 }
@@ -1778,7 +1788,13 @@ function SplitTab({ sub }) {
     { key: 'spy', title: 'SPxY', align: 'right', width: 130, sortValue: b => b.alloc, render: b => html`<span className="tabular">${amt(spx.y, b.alloc)}</span>` }
   ];
   const note = orderBased ? html`<div className="inline-alert sb-note" role="status"><div>Order-based split billing is applied to orders for this subscription, which will not be reflected here. Please find details in the <a className="inline-link" href="#orders" onClick=${e => { e.preventDefault(); goTab('orders'); }}>Orders tab</a>.</div></div>` : null;
-  return html`${note}<${DataTable} key=${'split' + actor.key + sub.id + JSON.stringify(sp.buyers.map(b => b.alloc))} id=${'split-' + actor.key + sub.id} columns=${cols} rows=${sp.buyers} defaultSort=${{ key: 'alloc', dir: 'desc' }} minWidth=${1000} footnote=${'* ' + FOOTNOTE.slice(1)} showCount=${false} />`;
+  const qf = [
+    { key: 'name', label: 'Buyer', type: 'text', get: b => b.name },
+    { key: 'id', label: 'Buyer ID', type: 'text', get: b => `${b.id} ${b.ext}` },
+    { key: 'owner', label: 'Owner', type: 'enum', options: ['Yes', 'No'], get: b => b.owner ? 'Yes' : 'No', tone: () => 'neutral' },
+    { key: 'alloc', label: 'Allocation %', type: 'number', unit: '%', get: b => b.alloc }
+  ];
+  return html`${note}<${DataTable} key=${'split' + actor.key + sub.id + JSON.stringify(sp.buyers.map(b => b.alloc))} id=${'split-' + actor.key + sub.id} queryFields=${qf} saveViews=${false} columns=${cols} rows=${sp.buyers} defaultSort=${{ key: 'alloc', dir: 'desc' }} minWidth=${1000} footnote=${'* ' + FOOTNOTE.slice(1)} showCount=${false} />`;
 }
 function OrdersTab({ sub }) {
   const { actor, orders, openOrder } = useApp();
@@ -1798,7 +1814,14 @@ function OrdersTab({ sub }) {
     { key: 'updated', title: 'Updated', width: 150, sortValue: o => stamp(lastEvent(o)), render: o => html`<${TwoLine} main=${lastEvent(o).date} sub=${lastEvent(o).time} />` },
     { key: 'status', title: 'Status', width: 140, render: o => html`<${Chip}>${o.status}<//>` }
   ];
-  return html`<${DataTable} key=${'ord' + actor.key + sub.id + rows.length} id=${'ord-' + actor.key + sub.id} columns=${cols} rows=${rows} onRowClick=${o => openOrder(o.id)} defaultSort=${{ key: 'date', dir: 'desc' }} minWidth=${1200} footnote=${'* ' + FOOTNOTE.slice(1)} showCount=${false}
+  const qf = [
+    { key: 'id', label: 'Order ID', type: 'text', get: o => `${o.id} ${o.ids.client || ''}` },
+    { key: 'type', label: 'Type', type: 'enum', options: uniq(rows, o => o.type, ['Purchase', 'Change', 'Terminate']), get: o => o.type, tone: () => 'neutral' },
+    { key: 'status', label: 'Status', type: 'enum', options: uniq(rows, o => o.status, ORDER_STATUSES), get: o => o.status, tone: toneOf },
+    { key: 'date', label: 'Order date', type: 'date', get: o => parseDate(o.created.date) },
+    { key: 'updated', label: 'Updated', type: 'date', get: o => parseDate(lastEvent(o).date) }
+  ];
+  return html`<${DataTable} key=${'ord' + actor.key + sub.id + rows.length} id=${'ord-' + actor.key + sub.id} queryFields=${qf} saveViews=${false} columns=${cols} rows=${rows} onRowClick=${o => openOrder(o.id)} defaultSort=${{ key: 'date', dir: 'desc' }} minWidth=${1200} footnote=${'* ' + FOOTNOTE.slice(1)} showCount=${false}
     empty=${{ title: 'No orders', text: 'Orders for this subscription appear here.' }} />`;
 }
 function TimestampCard({ audit }) {
@@ -1842,7 +1865,13 @@ function AuditTab({ sub }) {
     { key: 'by', title: 'Triggered by', width: 260, render: e => html`<div className="user"><${Avatar} name=${e.by} /><${TwoLine} main=${e.by} sub=${e.byId} /></div>` },
     { key: 'when', title: 'Date & time', width: 170, sortValue: e => parseDate(e.date) + (parseInt(e.time.replace(':', ''), 10) || 0), render: e => html`<${TwoLine} main=${e.date} sub=${e.time} />` }
   ];
-  return html`<${DataTable} key=${'aud' + actor.key + sub.id + sub.audit.length} id=${'aud-' + actor.key + sub.id} rowKey=${e => e.key} columns=${cols} rows=${rows} minWidth=${1000} />`;
+  const qf = [
+    { key: 'event', label: 'Event', type: 'enum', options: uniq(rows, e => e.event), get: e => e.event, tone: () => 'neutral' },
+    { key: 'details', label: 'Details', type: 'text', get: e => e.details },
+    { key: 'by', label: 'Triggered by', type: 'text', get: e => `${e.by} ${e.byId}` },
+    { key: 'when', label: 'Date', type: 'date', get: e => parseDate(e.date) }
+  ];
+  return html`<${DataTable} key=${'aud' + actor.key + sub.id + sub.audit.length} id=${'aud-' + actor.key + sub.id} queryFields=${qf} saveViews=${false} rowKey=${e => e.key} columns=${cols} rows=${rows} minWidth=${1000} />`;
 }
 
 /* ---------- Modals ---------- */
@@ -2739,7 +2768,13 @@ function OrderSubsTab({ o }) {
     { key: 'y', title: b + 'xY', align: 'right', width: 130, render: s => html`<span className="tabular">${s.status === 'Terminated' ? '—' : money(totals(s.items, b).y)}</span>` },
     { key: 'status', title: 'Status', width: 130, render: s => html`<${Chip}>${s.status}<//>` }
   ];
-  return html`<${DataTable} key=${'os' + actor.key + o.id} id=${'os-' + actor.key + o.id} columns=${cols} rows=${rows} onRowClick=${s => openSub(s.id)} minWidth=${1200} showCount=${false} footnote=${'* ' + FOOTNOTE.slice(1)} />`;
+  const qf = [
+    { key: 'name', label: 'Name', type: 'text', get: s => s.name },
+    { key: 'id', label: 'Subscription ID', type: 'text', get: s => s.id },
+    { key: 'status', label: 'Status', type: 'enum', options: ['Active', 'Updating', 'Terminating', 'Expired', 'Terminated'], get: s => s.status, tone: toneOf },
+    { key: 'renewal', label: 'Renewal date', type: 'date', get: s => parseDate(s.renewal) }
+  ];
+  return html`<${DataTable} key=${'os' + actor.key + o.id} id=${'os-' + actor.key + o.id} queryFields=${qf} saveViews=${false} columns=${cols} rows=${rows} onRowClick=${s => openSub(s.id)} minWidth=${1200} showCount=${false} footnote=${'* ' + FOOTNOTE.slice(1)} />`;
 }
 function OrderNotesTab({ o }) {
   return html`<div className="notes"><div className="label">Notes</div>${o.notes ? html`<p>${o.notes}</p>` : html`<p className="muted">No notes added.</p>`}</div>`;
@@ -2760,7 +2795,13 @@ function OrderAttachmentsTab({ o }) {
       ${close => html`<${MenuItem} disabled=${!live} onClick=${() => { close(); openOrderModal('o-attach', o.id, { attId: a.id }); }}>Edit<//><${MenuItem} danger=${live} disabled=${!live} onClick=${() => { close(); openOrderModal('o-attach-delete', o.id, { attId: a.id }); }}>Delete<//>`}
     <//>` }
   ];
-  return html`<${DataTable} key=${'oa' + actor.key + o.id + o.attachments.length} id=${'oa-' + actor.key + o.id} columns=${cols} rows=${o.attachments} minWidth=${1300} showCount=${false} />`;
+  const qf = [
+    { key: 'name', label: 'Name', type: 'text', get: a => `${a.name} ${a.id}` },
+    { key: 'type', label: 'Type', type: 'enum', options: ['Document', 'License key'], get: a => a.type === 'file' ? 'Document' : 'License key', tone: () => 'neutral' },
+    { key: 'desc', label: 'Description', type: 'text', get: a => a.desc },
+    { key: 'created', label: 'Created', type: 'date', get: a => parseDate(a.created.date) }
+  ];
+  return html`<${DataTable} key=${'oa' + actor.key + o.id + o.attachments.length} id=${'oa-' + actor.key + o.id} queryFields=${qf} saveViews=${false} columns=${cols} rows=${o.attachments} minWidth=${1300} showCount=${false} />`;
 }
 function OrderCertificatesTab({ o }) {
   const { actor } = useApp();
@@ -2772,7 +2813,14 @@ function OrderCertificatesTab({ o }) {
     { key: 'appliedTo', title: 'Applied to', width: 150 },
     { key: 'status', title: 'Status', width: 130, render: c => html`<${Chip}>${c.status}<//>` }
   ];
-  return html`<${DataTable} key=${'oc' + actor.key + o.id} id=${'oc-' + actor.key + o.id} columns=${cols} rows=${o.certificates} minWidth=${1100} showCount=${false} />`;
+  const qf = [
+    { key: 'name', label: 'Name', type: 'text', get: c => `${c.name} ${c.id}` },
+    { key: 'program', label: 'Program', type: 'text', get: c => c.program },
+    { key: 'certificant', label: 'Certificant', type: 'text', get: c => c.certificant },
+    { key: 'appliedTo', label: 'Applied to', type: 'enum', options: ['Buyer', 'Licensee'], get: c => c.appliedTo, tone: () => 'neutral' },
+    { key: 'status', label: 'Status', type: 'enum', options: ['Active', 'Expired'], get: c => c.status, tone: toneOf }
+  ];
+  return html`<${DataTable} key=${'oc' + actor.key + o.id} id=${'oc-' + actor.key + o.id} queryFields=${qf} saveViews=${false} columns=${cols} rows=${o.certificates} minWidth=${1100} showCount=${false} />`;
 }
 function OrderDetailsTab({ o }) {
   const { subs } = useApp();
