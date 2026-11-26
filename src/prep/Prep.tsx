@@ -8,14 +8,21 @@ import { cn } from "@/lib/utils"
 import { Highlight, Marker, Shot, Status, screen } from "../deck/kit"
 import { LivePrototype, StageCtx, type Step } from "../deck/Live"
 import { FLOWS } from "../deck/flows"
+import { CollabStory, DecisionTabs, EvidenceKey, GuideSection, MemoryMap, ModelAnswers, OwnershipLadder, ParamsVisual, ScopeSplit, StrongestEvidence, WatchOuts } from "./Guide"
 
 /* Private interview revision page. Only reachable in a local build (?prep, or R in
    the deck): main.tsx compiles it out of the hosted build, like the speaker notes. */
 
 const SECTIONS = [
-  { id: "structure", label: "Structure & state" },
-  { id: "transactions", label: "Transactions & billing" },
-  { id: "revision", label: "Revision sheet" },
+  { id: "map", label: "Memory map" },
+  { id: "ownership", label: "Who decided" },
+  { id: "decisions", label: "8 questions" },
+  { id: "collab", label: "Collaboration" },
+  { id: "scope", label: "Not built" },
+  { id: "params", label: "Parameters" },
+  { id: "answers", label: "Model answers" },
+  { id: "watch", label: "Watch-outs" },
+  { id: "structure", label: "Deep dive" },
   { id: "sources", label: "Sources" },
 ]
 
@@ -36,10 +43,10 @@ export default function Prep() {
           <a href={location.pathname} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-navy">
             <ArrowLeft className="size-4" /> Deck
           </a>
-          <nav className="flex gap-1">
+          <nav className="flex gap-0.5 overflow-x-auto">
             {SECTIONS.map(s => (
               <a key={s.id} href={`#${s.id}`} onClick={e => { e.preventDefault(); document.getElementById(s.id)?.scrollIntoView({ behavior: "smooth" }) }}
-                className="rounded-full px-3 py-1.5 text-sm font-medium text-ink hover:bg-secondary">
+                className="whitespace-nowrap rounded-full px-2.5 py-1.5 text-[13px] font-medium text-ink hover:bg-secondary">
                 {s.label}
               </a>
             ))}
@@ -55,12 +62,46 @@ export default function Prep() {
           <div className="text-sm font-bold uppercase tracking-[0.1em] text-teal">Brightflag · Interview revision · Researched edition</div>
           <h1 className="text-5xl font-bold tracking-[-0.02em] text-navy">SoftwareOne Marketplace: design decisions</h1>
           <p className="max-w-3xl text-xl text-muted-foreground">
-            Four decisions, each with its evidence, the documented rules behind it, what you decided and what it cost. Open the prototype under each one to click through it.
+            Glance, don’t read. Six chains to remember, who decided what, and short answers to say out loud. The deep dive with live prototypes is further down.
           </p>
+          <div className="mt-3"><EvidenceKey /></div>
         </div>
 
+        <GuideSection id="map" kicker="Remember these six" title="Memory map" lead="Topic → problem → your response. One line to say for each.">
+          <MemoryMap />
+        </GuideSection>
+
+        <GuideSection id="ownership" kicker="Roadmap vs scope vs design" title="Who decided what" lead="Three layers. Keep them separate when you answer.">
+          <OwnershipLadder />
+          <StrongestEvidence />
+        </GuideSection>
+
+        <GuideSection id="decisions" kicker="For every decision" title="The 8 questions" lead="Problem, evidence, alternative, your decision, why, trade-off, validation, outcome. Amber means you still need to fill it in.">
+          <DecisionTabs />
+        </GuideSection>
+
+        <GuideSection id="collab" kicker="Your strongest supported story" title="Collaboration: the change order" lead="Discovery changed the requirement. You proposed the alternative.">
+          <CollabStory />
+        </GuideSection>
+
+        <GuideSection id="scope" kicker="What you did not build" title="Rejected approach ≠ excluded feature">
+          <ScopeSplit />
+        </GuideSection>
+
+        <GuideSection id="params" kicker="Vendor variability → extensibility" title="Parameters">
+          <ParamsVisual />
+        </GuideSection>
+
+        <GuideSection id="answers" kicker="Say these out loud" title="Model answers" lead="Two sentences each. Hide them and practise.">
+          <ModelAnswers />
+        </GuideSection>
+
+        <GuideSection id="watch" kicker="Be careful with these" title="Watch-outs" lead="Claims that aren’t backed up, or that conflict with your files.">
+          <WatchOuts />
+        </GuideSection>
+
         {/* ------------------------------------------------ Structure & state */}
-        <Section id="structure" title="Structure & state" lead="Two examples of designing interconnected commercial objects.">
+        <Section id="structure" title="Deep dive · Structure & state" lead="Two examples of designing interconnected commercial objects. Open the prototype under each one.">
           <Topic n="01" title="Subscription object page" tag="Your strongest research example"
             rows={[
               ["Research", "Heap indicated poor legacy conversion. Interviews exposed difficulty locating split billing."],

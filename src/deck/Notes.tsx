@@ -1,5 +1,6 @@
 import { Fragment } from "react"
 import { cn } from "@/lib/utils"
+import { EVIDENCE_TONE } from "../prep/evidenceTones"
 
 /** Renders a slide's script.
  *  Plain lines are spoken; "{Step} …" lines are spoken and tagged with their place in
@@ -36,7 +37,7 @@ export function NotesBody({ notes, size = "lg" }: { notes: string[]; size?: "md"
         return (
           <p key={k} className={cn("text-white/90", text)}>
             {step ? (
-              <span className={cn("mr-2 inline-block -translate-y-[2px] rounded bg-[#087c90]/40 px-1.5 py-0.5 align-middle font-semibold uppercase tracking-[0.08em] text-[#9fdde3]", lg ? "text-[12px]" : "text-[10px]")}>
+              <span className={cn("mr-2 inline-block -translate-y-[2px] rounded px-1.5 py-0.5 align-middle font-semibold uppercase tracking-[0.08em]", step[1] in EVIDENCE_TONE ? EVIDENCE_TONE[step[1]].tone : "bg-[#087c90]/40 text-[#9fdde3]", lg ? "text-[12px]" : "text-[10px]")}>
                 {step[1]}
               </span>
             ) : null}
