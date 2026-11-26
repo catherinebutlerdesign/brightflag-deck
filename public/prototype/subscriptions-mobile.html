@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Subscriptions for iPhone</title>
-<meta name="description" content="iPhone prototype of the Marketplace Subscriptions module for the Client, Vendor and Operations actors, styled with the iOS 27 Liquid Glass kit.">
+<meta name="description" content="iPhone prototype of the Marketplace Subscriptions module for the Client, Vendor and Operations actors, built with Apple’s iOS components.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block">
@@ -1128,7 +1128,7 @@ function Stage({ children, panel }) {
 function Panel({ actorKey, onActor, theme, setTheme, onReset }) {
   return html`<aside className="panel" aria-label="Prototype controls">
     <span className="tag">Prototype</span>
-    <div><h1>Subscriptions for iPhone</h1><p className="lede">The Marketplace Subscriptions module for iOS 27, built with the Liquid Glass components from the iOS and iPadOS 27 kit.</p></div>
+    <div><h1>Subscriptions for iPhone</h1><p className="lede">The Marketplace Subscriptions module for iPhone, built with Apple’s iOS components.</p></div>
     <div className="ctl"><span className="ctl-label">View as</span><${Segmented} label="View as" options=${Object.values(ACTORS).map(a => [a.key, a.label])} value=${actorKey} onChange=${onActor} /></div>
     <div className="ctl"><span className="ctl-label">Appearance</span><${Segmented} label="Appearance" options=${[['light', 'Light'], ['dark', 'Dark'], ['auto', 'Auto']]} value=${theme} onChange=${setTheme} /></div>
     <div className="note"><b>Try it:</b> open a subscription, then use <b>Edit</b> for a change order or <b>•••</b> for rename, split billing and terminate. Pending orders can be completed from the banner on the subscription.</div>

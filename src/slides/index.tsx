@@ -1,7 +1,7 @@
 import type { ComponentType } from "react"
 import { Context, Cover, Discovery, Lifecycle, Problem, Scope } from "./story"
 import { Anatomy, ChangeFlow, Exceptions, ItemPrice, SplitBilling, ThreeViews } from "./design"
-import { Collaboration, Discussion, Outcomes, Prototypes, Questions, Reflection, WhyBrightflag } from "./close"
+import { Collaboration, Outcomes, Prototypes, Reflection, WhyBrightflag } from "./close"
 import { LiveChange, LiveExceptions, LiveLifecycle, LiveMobile, LivePrice, LiveSplit, LiveViews } from "./live"
 
 export type SlideDef = {
@@ -331,12 +331,8 @@ export const slides: SlideDef[] = [
     notes: import.meta.env.VITE_PUBLIC_BUILD ? [] : [
       "CUE: Free play in the deck window. Role and appearance switch beside the phone.",
       "The list groups what needs attention first. A subscription shows that role’s price as summary tiles, and the change wizard becomes one sheet.",
-    ],
-  },
-  {
-    id: "discussion", title: "Deep dive prompts", section: "Appendix", Component: Discussion,
-    notes: import.meta.env.VITE_PUBLIC_BUILD ? [] : [
-      "CUE: Prep for the discussion. Full answers are in each slide’s follow-ups and on the revision page (R).",
+      "CUE: Deep dive prep, for after the talk. Full answers are in each slide’s follow-ups and on the revision page (R).",
+      "CUE: Likely deep-dive questions: which problems you excluded, your role in shaping scope, which evidence changed a decision, which solution you rejected, how object states mapped to actions, how technical debt changed the interface, how quality was evaluated, what you’d measure.",
       "Roadmap vs scope vs design → slide 5. Roadmap: PMs. Scope: you shaped it with evidence. Design: yours.",
       "Rejected approaches vs excluded features → slide 5. Rejected: inline editing, bespoke pages, simple edit modal. Excluded: [your example].",
       "Strongest individual contribution → slide 8: simple modal became a change order with review, summary and delta.",
@@ -344,13 +340,12 @@ export const slides: SlideDef[] = [
       "Evidence types → quantitative (Heap), qualitative (interviews), domain discovery (rules, journey map), technical constraints (no inline editing, Navision), design judgement.",
       "Extensibility → slide 18: Parameters hold vendor-configured fields in one structure.",
       "What you’d measure → task completion, discoverability, navigation effort, before-and-after funnel conversion.",
-    ],
-  },
-  {
-    id: "questions", title: "Your questions", section: "Appendix", Component: Questions,
-    notes: import.meta.env.VITE_PUBLIC_BUILD ? [] : [
-      "CUE: For the last 5–10 minutes. Pick the two or three most relevant to what came up.",
-      "If they mention AI, ask where it assists versus automates the user’s decision. If scope came up, ask how much ownership designers have over MVP scope.",
+      "CUE: Your questions for the panel, for the last 5–10 minutes. Pick the two or three most relevant to what came up. If they mention AI, ask the AI one; if scope came up, ask about MVP ownership.",
+      "{Your question} Where do clients struggle most with matter and invoice workflows?",
+      "{Your question} Where does AI assist, and where does it automate the user’s decision?",
+      "{Your question} How much ownership do designers have over MVP scope?",
+      "{Your question} What does strong visual craft mean in the Brightflag product?",
+      "{Your question} How are Product, Design and Engineering trade-offs resolved?",
     ],
   },
 ]
